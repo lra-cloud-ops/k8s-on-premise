@@ -1,9 +1,9 @@
 ENV['VAGRANT_NO_PARALLEL'] = 'yes'
 
 Vagrant.configure("2") do |config|
-
   config.vm.box = "ubuntu/jammy64"
   config.vm.box_check_update = false
+  config.vm.boot_timeout = 600
 
   # Master Node
   config.vm.define "master" do |master|
@@ -14,6 +14,8 @@ Vagrant.configure("2") do |config|
       v.memory = 2048
       v.cpus   = 2
     end
+    master.vm.provision "shell", path: "scripts/common.sh"
+    master.vm.provision "shell", path: "scripts/master.sh"
   end
 
   # Worker Node 1
@@ -25,6 +27,8 @@ Vagrant.configure("2") do |config|
       v.memory = 2048
       v.cpus   = 2
     end
+    worker1.vm.provision "shell", path: "scripts/common.sh"
+    worker1.vm.provision "shell", args: "192.168.56.11", path: "scripts/worker.sh"
   end
 
   # Worker Node 2
@@ -36,6 +40,8 @@ Vagrant.configure("2") do |config|
       v.memory = 2048
       v.cpus   = 2
     end
+    worker2.vm.provision "shell", path: "scripts/common.sh"
+    worker2.vm.provision "shell", args: "192.168.56.12", path: "scripts/worker.sh"
   end
 
 end
