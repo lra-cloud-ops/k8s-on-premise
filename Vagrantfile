@@ -1,0 +1,41 @@
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "ubuntu/jammy64"
+  config.vm.box_check_update = false
+
+  # Master Node
+  config.vm.define "master" do |master|
+    master.vm.hostname = "master-node"
+    master.vm.network "private_network", ip: "192.168.56.10"
+    master.vm.provider "virtualbox" do |v|
+      v.name   = "master-node"
+      v.memory = 2048
+      v.cpus   = 2
+    end
+  end
+
+  # Worker Node 1
+  config.vm.define "worker1" do |worker1|
+    worker1.vm.hostname = "worker-node1"
+    worker1.vm.network "private_network", ip: "192.168.56.11"
+    worker1.vm.provider "virtualbox" do |v|
+      v.name   = "worker-node1"
+      v.memory = 2048
+      v.cpus   = 2
+    end
+  end
+
+  # Worker Node 2
+  config.vm.define "worker2" do |worker2|
+    worker2.vm.hostname = "worker-node2"
+    worker2.vm.network "private_network", ip: "192.168.56.12"
+    worker2.vm.provider "virtualbox" do |v|
+      v.name   = "worker-node2"
+      v.memory = 2048
+      v.cpus   = 2
+    end
+  end
+
+end
