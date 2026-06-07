@@ -16,6 +16,9 @@ Vagrant.configure("2") do |config|
     end
     master.vm.provision "shell", path: "scripts/common.sh"
     master.vm.provision "shell", path: "scripts/master.sh"
+    master.vm.provision "shell", run: "always", inline: <<-SHELL
+      systemctl restart kubelet
+    SHELL
   end
 
   # Worker Node 1
@@ -29,6 +32,9 @@ Vagrant.configure("2") do |config|
     end
     worker1.vm.provision "shell", path: "scripts/common.sh"
     worker1.vm.provision "shell", args: "192.168.56.11", path: "scripts/worker.sh"
+    worker1.vm.provision "shell", run: "always", inline: <<-SHELL
+      systemctl restart kubelet
+    SHELL
   end
 
   # Worker Node 2
@@ -42,6 +48,9 @@ Vagrant.configure("2") do |config|
     end
     worker2.vm.provision "shell", path: "scripts/common.sh"
     worker2.vm.provision "shell", args: "192.168.56.12", path: "scripts/worker.sh"
+    worker2.vm.provision "shell", run: "always", inline: <<-SHELL
+      systemctl restart kubelet
+    SHELL
   end
 
 end
