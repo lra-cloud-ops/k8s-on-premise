@@ -9,10 +9,37 @@
 ![containerd](https://img.shields.io/badge/Runtime-containerd_2.2.1-575757?style=for-the-badge&logo=docker&logoColor=white)
 ![Ubuntu](https://img.shields.io/badge/OS-Ubuntu_22.04_LTS-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)
 ![Vagrant](https://img.shields.io/badge/IaC-Vagrant-1563FF?style=for-the-badge&logo=vagrant&logoColor=white)
+![Helm](https://img.shields.io/badge/Helm-v3.21.0-0F1689?style=for-the-badge&logo=helm&logoColor=white)
 
 *Clúster Kubernetes on-premise de 3 nodos, completamente automatizado con Vagrant y kubeadm*
 
 </div>
+
+---
+
+## Roadmap
+
+| Fase | Componente | Estado |
+|---|---|---|
+| Base | Vagrant · VirtualBox · Ubuntu · containerd · kubeadm · Calico | ✅ Completado |
+| Fase 1 | Helm · Metrics Server | ✅ Completado |
+| Fase 2 | Longhorn (almacenamiento persistente) | ⬜ Pendiente |
+| Fase 3 | NGINX Ingress Controller | ⬜ Pendiente |
+| Fase 4 | cert-manager (SSL/TLS) | ⬜ Pendiente |
+| Fase 5 | PostgreSQL (StatefulSets) | ⬜ Pendiente |
+| Fase 6 | Prometheus (métricas) | ⬜ Pendiente |
+| Fase 7 | Grafana (dashboards) | ⬜ Pendiente |
+| Fase 8 | Loki + Promtail (logging) | ⬜ Pendiente |
+| Fase 9 | Alertmanager (alertas) | ⬜ Pendiente |
+| Fase 10 | Harbor (registro de imágenes) | ⬜ Pendiente |
+| Fase 11 | Jenkins (CI/CD) | ⬜ Pendiente |
+| Fase 12 | SonarQube (calidad de código) | ⬜ Pendiente |
+| Fase 13 | ArgoCD (GitOps) | ⬜ Pendiente |
+| Fase 14 | HashiCorp Vault (secretos) | ⬜ Pendiente |
+| Fase 15 | Trivy (seguridad) | ⬜ Pendiente |
+| Fase 16 | Velero (backups) | ⬜ Pendiente |
+| Fase 17 | App real — React + FastAPI + PostgreSQL | ⬜ Pendiente |
+| Fase 18 | OpenTelemetry + Jaeger | ⬜ Pendiente |
 
 ---
 
@@ -55,6 +82,8 @@
 | kubeadm | v1.31.14 | Bootstrap del clúster |
 | containerd | v2.2.1 | Container runtime (CRI) |
 | Calico | v3.27.0 | CNI — Red de Pods |
+| Helm | v3.21.0 | Package manager de Kubernetes |
+| Metrics Server | v0.8.0 | Métricas de CPU y RAM |
 | Ubuntu | 22.04 LTS | Sistema operativo base |
 | Vagrant | 2.x | Provisioning de VMs |
 | VirtualBox | 7.2 | Hypervisor |
@@ -128,18 +157,32 @@ worker-node1   Ready    <none>          -     v1.31.14   192.168.56.11
 worker-node2   Ready    <none>          -     v1.31.14   192.168.56.12
 ```
 
+### 4. Instalar Helm y Metrics Server
+
+```bash
+bash scripts/helm-metrics.sh
+```
+
+Verificar métricas:
+
+```bash
+kubectl top nodes
+kubectl top pods -n kube-system
+```
+
 ---
 
 ## Estructura del Repositorio
 
 ```
 k8s-on-premise/
-├── Vagrantfile           # Definición de infraestructura (IaC)
-├── README.md             # Este documento
+├── Vagrantfile              # Definición de infraestructura (IaC)
+├── README.md                # Este documento
 └── scripts/
-    ├── common.sh         # Instalación base en los 3 nodos
-    ├── master.sh         # Inicialización del Control Plane
-    └── worker.sh         # Join de los workers al clúster
+    ├── common.sh            # Instalación base en los 3 nodos
+    ├── master.sh            # Inicialización del Control Plane
+    ├── worker.sh            # Join de los workers al clúster
+    └── helm-metrics.sh      # Helm + Metrics Server (Fase 1)
 ```
 
 ---
@@ -165,6 +208,10 @@ k8s-on-premise/
 kubectl get nodes -o wide
 kubectl get pods -n kube-system
 
+# Métricas de recursos
+kubectl top nodes
+kubectl top pods -n kube-system
+
 # Desplegar una aplicación de prueba
 kubectl create deployment nginx --image=nginx
 kubectl expose deployment nginx --port=80 --type=NodePort
@@ -175,6 +222,9 @@ kubectl logs -n kube-system <nombre-del-pod>
 
 # Describir un nodo
 kubectl describe node master-node
+
+# Ver todos los recursos de un namespace
+kubectl get all -n kube-system
 ```
 
 ---
@@ -197,7 +247,6 @@ sudo systemctl daemon-reload && sudo systemctl restart kubelet
 
 **Solución:** Levantar los workers por separado:
 ```bash
-vagrant destroy worker1 worker2 --force
 vagrant up worker1
 vagrant up worker2
 ```
@@ -232,12 +281,12 @@ sudo systemctl restart containerd && sudo systemctl enable containerd
 | `kube-proxy` | Gestiona las reglas de red (iptables/ipvs) para los Services |
 | `containerd` | Runtime de contenedores compatible con CRI |
 | `calico-node` | Implementa la red entre Pods y aplica NetworkPolicies |
+| `metrics-server` | Recopila métricas de CPU y RAM. Habilita `kubectl top` y HPA |
 
 ---
 
 <div align="center">
 
 **LRA Cloud Operations**
-[github.com/lra-cloud-ops](https://github.com/lra-cloud-ops) · Las Palmas de Gran Canaria, España
-
+[github.com/lra-cloud-ops](https://github.com/lra-cloud-ops) · Las Palmas de Gran Canaria, España - https://www.lracloudops.com/
 </div>
