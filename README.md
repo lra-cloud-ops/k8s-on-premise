@@ -1,19 +1,12 @@
-# Kubernetes On-Premise Cluster
+# k8s-on-premise
 
-<div align="center">
+Clúster Kubernetes de 3 nodos desplegado on-premise con Vagrant, VirtualBox y kubeadm. Infraestructura completamente automatizada mediante scripts de provisioning. Proyecto en progreso con roadmap de 18 fases hacia una plataforma DevOps completa.
 
-**LRA Cloud Operations**
-
-![Kubernetes](https://img.shields.io/badge/Kubernetes-v1.31.14-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
-![Calico](https://img.shields.io/badge/CNI-Calico_v3.27-FB8C00?style=for-the-badge&logo=linux&logoColor=white)
-![containerd](https://img.shields.io/badge/Runtime-containerd_2.2.1-575757?style=for-the-badge&logo=docker&logoColor=white)
-![Ubuntu](https://img.shields.io/badge/OS-Ubuntu_22.04_LTS-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)
-![Vagrant](https://img.shields.io/badge/IaC-Vagrant-1563FF?style=for-the-badge&logo=vagrant&logoColor=white)
-![Helm](https://img.shields.io/badge/Helm-v3.21.0-0F1689?style=for-the-badge&logo=helm&logoColor=white)
-
-*Clúster Kubernetes on-premise de 3 nodos, completamente automatizado con Vagrant y kubeadm*
-
-</div>
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-v1.31.14-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io)
+[![Helm](https://img.shields.io/badge/Helm-v3.21.0-0F1689?logo=helm&logoColor=white)](https://helm.sh)
+[![Calico](https://img.shields.io/badge/Calico-v3.27-FB8C00)](https://projectcalico.org)
+[![Ubuntu](https://img.shields.io/badge/Ubuntu-22.04_LTS-E95420?logo=ubuntu&logoColor=white)](https://ubuntu.com)
+[![Vagrant](https://img.shields.io/badge/Vagrant-2.x-1563FF?logo=vagrant&logoColor=white)](https://vagrantup.com)
 
 ---
 
@@ -43,38 +36,26 @@
 
 ---
 
-## Arquitectura
+## Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                     Host (Windows)                           │
-│                                                              │
-│   ┌─────────────────────────────────────────────────────┐   │
-│   │              CONTROL PLANE                          │   │
-│   │              master-node · 192.168.56.10            │   │
-│   │                                                     │   │
-│   │   kube-apiserver · etcd · kube-scheduler            │   │
-│   │   kube-controller-manager · calico-node             │   │
-│   └──────────────────────┬──────────────────────────────┘   │
-│                          │  192.168.56.0/24                  │
-│              ┌───────────┴───────────┐                       │
-│              │                       │                       │
-│   ┌──────────▼──────────┐ ┌──────────▼──────────┐           │
-│   │     WORKER NODE 1   │ │     WORKER NODE 2   │           │
-│   │  worker-node1       │ │  worker-node2       │           │
-│   │  192.168.56.11      │ │  192.168.56.12      │           │
-│   │                     │ │                     │           │
-│   │  kubelet            │ │  kubelet            │           │
-│   │  kube-proxy         │ │  kube-proxy         │           │
-│   │  containerd         │ │  containerd         │           │
-│   │  calico-node        │ │  calico-node        │           │
-│   └─────────────────────┘ └─────────────────────┘           │
-└──────────────────────────────────────────────────────────────┘
+Host (Windows)
+├── master-node   192.168.56.10   Control Plane
+│                                 kube-apiserver · etcd · kube-scheduler
+│                                 kube-controller-manager · calico-node
+├── worker-node1  192.168.56.11   Worker
+│                                 kubelet · kube-proxy · containerd · calico-node
+└── worker-node2  192.168.56.12   Worker
+                                  kubelet · kube-proxy · containerd · calico-node
+
+Red de nodos:    192.168.56.0/24
+Red de Pods:     10.244.0.0/16
+Red de Servicios: 10.96.0.0/12
 ```
 
 ---
 
-## Stack Tecnológico
+## Stack
 
 | Componente | Versión | Rol |
 |---|---|---|
@@ -90,62 +71,38 @@
 
 ---
 
-## Configuración de Red
-
-| Nodo | IP | Rol |
-|---|---|---|
-| master-node | `192.168.56.10` | Control Plane |
-| worker-node1 | `192.168.56.11` | Worker |
-| worker-node2 | `192.168.56.12` | Worker |
-
-| Red | CIDR |
-|---|---|
-| Red de nodos (Host-Only) | `192.168.56.0/24` |
-| Red de Pods | `10.244.0.0/16` |
-| Red de Servicios | `10.96.0.0/12` |
-
----
-
 ## Requisitos
 
 - Windows 10/11 (64-bit)
 - VirtualBox 7.2+
 - Vagrant 2.x+
 - Git
-- **RAM:** 16 GB recomendado (8 GB mínimo)
-- **CPU:** 8 núcleos recomendados (4 mínimo)
-- **Disco:** 50 GB libres
+- RAM: 16 GB recomendado (8 GB mínimo)
+- CPU: 8 núcleos recomendados (4 mínimo)
+- Disco: 50 GB libres
 
 ---
 
-## Despliegue Automatizado
-
-El clúster se despliega completamente con un único comando. El proceso tarda ~15-20 minutos.
-
-### 1. Clonar el repositorio
+## Quickstart
 
 ```bash
 git clone https://github.com/lra-cloud-ops/k8s-on-premise.git
 cd k8s-on-premise
-```
-
-### 2. Levantar el clúster
-
-```bash
 vagrant up
 ```
 
 Vagrant ejecuta automáticamente en orden:
 
-1. `common.sh` en los 3 nodos → instala containerd, kubeadm, kubelet, kubectl
-2. `master.sh` en master → `kubeadm init` + Calico CNI + genera join token
-3. `worker.sh` en workers → `kubeadm join` al clúster
+1. `common.sh` en los 3 nodos — instala containerd, kubeadm, kubelet, kubectl
+2. `master.sh` en master — `kubeadm init` + Calico CNI + genera join token
+3. `worker.sh` en workers — `kubeadm join` al clúster
 
-### 3. Verificar el clúster
+Verificar el clúster:
 
 ```bash
 vagrant ssh master
 kubectl get nodes -o wide
+kubectl get pods -n kube-system
 ```
 
 Output esperado:
@@ -157,22 +114,17 @@ worker-node1   Ready    <none>          -     v1.31.14   192.168.56.11
 worker-node2   Ready    <none>          -     v1.31.14   192.168.56.12
 ```
 
-### 4. Instalar Helm y Metrics Server
+Instalar Helm y Metrics Server:
 
 ```bash
 bash scripts/helm-metrics.sh
-```
-
-Verificar métricas:
-
-```bash
 kubectl top nodes
 kubectl top pods -n kube-system
 ```
 
 ---
 
-## Estructura del Repositorio
+## Project Structure
 
 ```
 k8s-on-premise/
@@ -187,7 +139,7 @@ k8s-on-premise/
 
 ---
 
-## Operación
+## Operations
 
 | Acción | Comando |
 |---|---|
@@ -201,75 +153,7 @@ k8s-on-premise/
 
 ---
 
-## Comandos Kubernetes útiles
-
-```bash
-# Estado del clúster
-kubectl get nodes -o wide
-kubectl get pods -n kube-system
-
-# Métricas de recursos
-kubectl top nodes
-kubectl top pods -n kube-system
-
-# Desplegar una aplicación de prueba
-kubectl create deployment nginx --image=nginx
-kubectl expose deployment nginx --port=80 --type=NodePort
-kubectl get svc nginx
-
-# Ver logs de un pod
-kubectl logs -n kube-system <nombre-del-pod>
-
-# Describir un nodo
-kubectl describe node master-node
-
-# Ver todos los recursos de un namespace
-kubectl get all -n kube-system
-```
-
----
-
-## Resolución de Problemas
-
-### Nodos en estado `NotReady`
-
-**Causa:** El kubelet anuncia la IP del adaptador NAT (`10.0.2.15`) en vez de la red privada.
-
-**Solución:**
-```bash
-echo 'KUBELET_EXTRA_ARGS=--node-ip=<IP_DEL_NODO>' | sudo tee /etc/default/kubelet
-sudo systemctl daemon-reload && sudo systemctl restart kubelet
-```
-
-### Timeout en `vagrant up`
-
-**Causa:** Las VMs tardan más del tiempo por defecto (300s) en arrancar.
-
-**Solución:** Levantar los workers por separado:
-```bash
-vagrant up worker1
-vagrant up worker2
-```
-
-### Error `conntrack not found` en kubeadm join
-
-```bash
-sudo apt-get install -y conntrack
-```
-
-### Error `containerd.sock not found`
-
-```bash
-sudo apt-get install -y containerd
-sudo mkdir -p /etc/containerd
-containerd config default | sudo tee /etc/containerd/config.toml
-sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
-sudo systemctl restart containerd && sudo systemctl enable containerd
-```
-
----
-
-## Componentes del Control Plane
+## Control Plane Components
 
 | Componente | Función |
 |---|---|
@@ -285,8 +169,42 @@ sudo systemctl restart containerd && sudo systemctl enable containerd
 
 ---
 
-<div align="center">
+## Troubleshooting
 
-**LRA Cloud Operations**
-[github.com/lra-cloud-ops](https://github.com/lra-cloud-ops) · Las Palmas de Gran Canaria, España - https://www.lracloudops.com/
-</div>
+### Nodos en estado NotReady
+
+Causa: el kubelet anuncia la IP del adaptador NAT (`10.0.2.15`) en vez de la red privada.
+
+```bash
+echo 'KUBELET_EXTRA_ARGS=--node-ip=<IP_DEL_NODO>' | sudo tee /etc/default/kubelet
+sudo systemctl daemon-reload && sudo systemctl restart kubelet
+```
+
+### Timeout en vagrant up
+
+Causa: las VMs tardan más del tiempo por defecto en arrancar.
+
+```bash
+vagrant up worker1
+vagrant up worker2
+```
+
+### Error conntrack not found en kubeadm join
+
+```bash
+sudo apt-get install -y conntrack
+```
+
+### Error containerd.sock not found
+
+```bash
+sudo apt-get install -y containerd
+sudo mkdir -p /etc/containerd
+containerd config default | sudo tee /etc/containerd/config.toml
+sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+sudo systemctl restart containerd && sudo systemctl enable containerd
+```
+
+---
+
+Developed by [LRA Cloud Operations](https://www.lracloudops.com/) · [github.com/lra-cloud-ops](https://github.com/lra-cloud-ops) · Las Palmas de Gran Canaria, España
