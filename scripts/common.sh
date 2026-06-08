@@ -53,7 +53,7 @@ sysctl --system
 # -----------------------------------------------------------------------------
 echo "=== [4/5] Instalando containerd ==="
 apt-get update -y
-apt-get install -y containerd conntrack
+apt-get install -y containerd conntrack open-iscsi
 
 mkdir -p /etc/containerd
 containerd config default > /etc/containerd/config.toml
@@ -61,6 +61,8 @@ sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.to
 
 systemctl restart containerd
 systemctl enable containerd
+systemctl enable iscsid
+systemctl start iscsid
 
 # -----------------------------------------------------------------------------
 # kubeadm · kubelet · kubectl
