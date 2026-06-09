@@ -11,8 +11,7 @@ helm repo update
 echo "=== Instalando Metrics Server ==="
 helm upgrade --install metrics-server metrics-server/metrics-server \
   --namespace kube-system \
-  --set args={--kubelet-insecure-tls}
-
+  --set 'args={--kubelet-insecure-tls,--kubelet-preferred-address-types=InternalIP}'
 echo "=== Verificando ==="
 sleep 30
 kubectl top nodes
