@@ -1,89 +1,53 @@
 # k8s-on-premise
 
-Clúster Kubernetes de 3 nodos desplegado on-premise con Vagrant, VirtualBox y kubeadm. Infraestructura completamente automatizada mediante scripts de provisioning. Proyecto en progreso con roadmap de 18 fases hacia una plataforma DevOps completa.
-
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-v1.31.14-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io)
-[![Helm](https://img.shields.io/badge/Helm-v3.21.0-0F1689?logo=helm&logoColor=white)](https://helm.sh)
-[![Calico](https://img.shields.io/badge/Calico-v3.27-FB8C00)](https://projectcalico.org)
-[![Ubuntu](https://img.shields.io/badge/Ubuntu-22.04_LTS-E95420?logo=ubuntu&logoColor=white)](https://ubuntu.com)
-[![Vagrant](https://img.shields.io/badge/Vagrant-2.x-1563FF?logo=vagrant&logoColor=white)](https://vagrantup.com)
+Production-grade Kubernetes cluster deployed on-premise using kubeadm, Vagrant, and VirtualBox. Built following Red Hat engineering standards — automated, reproducible, and documented.
 
 ---
 
-## Roadmap
+## Overview
 
-| Fase | Componente | Estado |
-|---|---|---|
-| Base | Vagrant · VirtualBox · Ubuntu · containerd · kubeadm · Calico | ✅ Completado |
-| Fase 1 | Helm · Metrics Server | ✅ Completado |
-| Fase 2 | Longhorn (almacenamiento persistente) | ⬜ Pendiente |
-| Fase 3 | NGINX Ingress Controller | ⬜ Pendiente |
-| Fase 4 | cert-manager (SSL/TLS) | ⬜ Pendiente |
-| Fase 5 | PostgreSQL (StatefulSets) | ⬜ Pendiente |
-| Fase 6 | Prometheus (métricas) | ⬜ Pendiente |
-| Fase 7 | Grafana (dashboards) | ⬜ Pendiente |
-| Fase 8 | Loki + Promtail (logging) | ⬜ Pendiente |
-| Fase 9 | Alertmanager (alertas) | ⬜ Pendiente |
-| Fase 10 | Harbor (registro de imágenes) | ⬜ Pendiente |
-| Fase 11 | Jenkins (CI/CD) | ⬜ Pendiente |
-| Fase 12 | SonarQube (calidad de código) | ⬜ Pendiente |
-| Fase 13 | ArgoCD (GitOps) | ⬜ Pendiente |
-| Fase 14 | HashiCorp Vault (secretos) | ⬜ Pendiente |
-| Fase 15 | Trivy (seguridad) | ⬜ Pendiente |
-| Fase 16 | Velero (backups) | ⬜ Pendiente |
-| Fase 17 | App real — React + FastAPI + PostgreSQL | ⬜ Pendiente |
-| Fase 18 | OpenTelemetry + Jaeger | ⬜ Pendiente |
+This lab implements a multi-node Kubernetes cluster from scratch, following an 18-phase roadmap that covers the full DevOps stack: storage, ingress, observability, security, GitOps, and CI/CD. Each phase is production-oriented and interview-ready.
+
+**Organization:** [LRA Cloud Operations](https://lracloudops.com)  
+**Repository:** [github.com/lra-cloud-ops/k8s-on-premise](https://github.com/lra-cloud-ops/k8s-on-premise)
 
 ---
 
 ## Architecture
 
 ```
-Host (Windows)
-├── master-node   192.168.56.10   Control Plane
-│                                 kube-apiserver · etcd · kube-scheduler
-│                                 kube-controller-manager · calico-node
-├── worker-node1  192.168.56.11   Worker
-│                                 kubelet · kube-proxy · containerd · calico-node
-└── worker-node2  192.168.56.12   Worker
-                                  kubelet · kube-proxy · containerd · calico-node
+Host: Windows 11 Pro · Intel i7-13620H · 32GB RAM · 2.75TB
 
-Red de nodos:    192.168.56.0/24
-Red de Pods:     10.244.0.0/16
-Red de Servicios: 10.96.0.0/12
+┌─────────────────────────────────────────────────────────┐
+│                     VirtualBox                          │
+│                                                         │
+│  ┌──────────────────┐  ┌─────────────┐  ┌───────────┐  │
+│  │   master-node    │  │ worker-node1│  │worker-node2│  │
+│  │ 192.168.56.10    │  │192.168.56.11│  │192.168.56.12│ │
+│  │ 6GB RAM · 4 CPU  │  │6GB · 4 CPU  │  │6GB · 4 CPU│  │
+│  │ Control Plane    │  │   Worker    │  │  Worker   │  │
+│  └──────────────────┘  └─────────────┘  └───────────┘  │
+│                                                         │
+│  CNI: Calico v3.27.0    Runtime: containerd v2.2.1      │
+│  Kubernetes: v1.31.14   OS: Ubuntu 22.04 LTS            │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Stack
+## Quick Start
 
-| Componente | Versión | Rol |
+### Prerequisites
+
+| Tool | Version | Purpose |
 |---|---|---|
-| Kubernetes | v1.31.14 | Orquestación de contenedores |
-| kubeadm | v1.31.14 | Bootstrap del clúster |
-| containerd | v2.2.1 | Container runtime (CRI) |
-| Calico | v3.27.0 | CNI — Red de Pods |
-| Helm | v3.21.0 | Package manager de Kubernetes |
-| Metrics Server | v0.8.0 | Métricas de CPU y RAM |
-| Ubuntu | 22.04 LTS | Sistema operativo base |
-| Vagrant | 2.x | Provisioning de VMs |
-| VirtualBox | 7.2 | Hypervisor |
+| VirtualBox | 7.x | Hypervisor |
+| Vagrant | 2.x | VM provisioning |
+| Git | any | Source control |
 
----
+**Minimum host resources:** 20GB RAM · 8 CPU cores · 150GB disk
 
-## Requisitos
-
-- Windows 10/11 (64-bit)
-- VirtualBox 7.2+
-- Vagrant 2.x+
-- Git
-- RAM: 16 GB recomendado (8 GB mínimo)
-- CPU: 8 núcleos recomendados (4 mínimo)
-- Disco: 50 GB libres
-
----
-
-## Quickstart
+### Deploy the cluster
 
 ```bash
 git clone https://github.com/lra-cloud-ops/k8s-on-premise.git
@@ -91,120 +55,209 @@ cd k8s-on-premise
 vagrant up
 ```
 
-Vagrant ejecuta automáticamente en orden:
+Provisioning takes approximately 20 minutes. The following runs automatically:
 
-1. `common.sh` en los 3 nodos — instala containerd, kubeadm, kubelet, kubectl
-2. `master.sh` en master — `kubeadm init` + Calico CNI + genera join token
-3. `worker.sh` en workers — `kubeadm join` al clúster
+1. `common.sh` — installs containerd, kubeadm, kubelet, kubectl on all nodes
+2. `master.sh` — initializes Control Plane, deploys Calico CNI
+3. `worker.sh` — resets any prior state, joins workers to the cluster
 
-Verificar el clúster:
+### Post-install (run on master after vagrant up)
 
 ```bash
 vagrant ssh master
-kubectl get nodes -o wide
-kubectl get pods -n kube-system
+bash /vagrant/scripts/post-install.sh
 ```
 
-Output esperado:
+This installs Helm, Metrics Server, and local-path StorageClass.
 
-```
-NAME           STATUS   ROLES           AGE   VERSION    INTERNAL-IP
-master-node    Ready    control-plane   -     v1.31.14   192.168.56.10
-worker-node1   Ready    <none>          -     v1.31.14   192.168.56.11
-worker-node2   Ready    <none>          -     v1.31.14   192.168.56.12
-```
-
-Instalar Helm y Metrics Server:
+### Verify
 
 ```bash
-bash scripts/helm-metrics.sh
+kubectl get nodes -o wide
 kubectl top nodes
-kubectl top pods -n kube-system
+kubectl get storageclass
 ```
 
 ---
 
-## Project Structure
+## Repository Structure
 
 ```
 k8s-on-premise/
-├── Vagrantfile              # Definición de infraestructura (IaC)
-├── README.md                # Este documento
+├── Vagrantfile                 # Infrastructure as Code — 3 VMs
+├── README.md                   # This file
+├── .gitignore                  # Excludes .vagrant/ and join-command.sh
 └── scripts/
-    ├── common.sh            # Instalación base en los 3 nodos
-    ├── master.sh            # Inicialización del Control Plane
-    ├── worker.sh            # Join de los workers al clúster
-    └── helm-metrics.sh      # Helm + Metrics Server (Fase 1)
+    ├── common.sh               # Base setup — all nodes
+    ├── master.sh               # Control Plane initialization
+    ├── worker.sh               # Worker join (idempotent)
+    ├── post-install.sh         # Helm + Metrics Server + StorageClass
+    └── helm-metrics.sh         # Phase 1 reference script
 ```
 
 ---
 
-## Operations
+## Roadmap
 
-| Acción | Comando |
-|---|---|
-| Levantar clúster | `vagrant up` |
-| Apagar clúster | `vagrant halt` |
-| Reiniciar clúster | `vagrant reload` |
-| Destruir clúster | `vagrant destroy --force` |
-| SSH a master | `vagrant ssh master` |
-| SSH a worker1 | `vagrant ssh worker1` |
-| Estado de VMs | `vagrant status` |
-
----
-
-## Control Plane Components
-
-| Componente | Función |
-|---|---|
-| `kube-apiserver` | Punto de entrada de todas las operaciones. Expone la API REST de Kubernetes |
-| `etcd` | Base de datos distribuida clave-valor. Almacena todo el estado del clúster |
-| `kube-scheduler` | Asigna Pods a nodos basándose en recursos disponibles y restricciones |
-| `kube-controller-manager` | Ejecuta los controladores que mantienen el estado deseado del clúster |
-| `kubelet` | Agente en cada nodo. Gestiona los Pods y comunica con el API Server |
-| `kube-proxy` | Gestiona las reglas de red (iptables/ipvs) para los Services |
-| `containerd` | Runtime de contenedores compatible con CRI |
-| `calico-node` | Implementa la red entre Pods y aplica NetworkPolicies |
-| `metrics-server` | Recopila métricas de CPU y RAM. Habilita `kubectl top` y HPA |
+| Phase | Component | Status | Notes |
+|---|---|---|---|
+| Base | Vagrant · containerd · kubeadm · Calico | ✅ Complete | Fully automated |
+| 1 | Helm v3.21.0 · Metrics Server v0.8.0 | ✅ Complete | kubectl top nodes working |
+| 2 | local-path-provisioner (StorageClass) | ✅ Complete | Default StorageClass, PVC verified |
+| 3 | NGINX Ingress Controller | 🔄 Next | HTTP/HTTPS routing |
+| 4 | cert-manager | ⬜ Planned | Automatic TLS certificates |
+| 5 | PostgreSQL (StatefulSet) | ⬜ Planned | Persistent database |
+| 6 | Prometheus | ⬜ Planned | Metrics collection |
+| 7 | Grafana | ⬜ Planned | Metrics visualization |
+| 8 | Loki + Promtail | ⬜ Planned | Log aggregation |
+| 9 | Alertmanager | ⬜ Planned | Alert routing |
+| 10 | Harbor | ⬜ Planned | Private container registry |
+| 11 | Jenkins | ⬜ Planned | CI pipelines |
+| 12 | SonarQube | ⬜ Planned | Code quality |
+| 13 | ArgoCD | ⬜ Planned | GitOps continuous delivery |
+| 14 | HashiCorp Vault | ⬜ Planned | Secrets management |
+| 15 | Trivy | ⬜ Planned | Container image scanning |
+| 16 | Velero | ⬜ Planned | Backup and restore |
+| 17 | Demo App | ⬜ Planned | React + FastAPI + PostgreSQL |
+| 18 | OpenTelemetry + Jaeger | ⬜ Planned | Distributed tracing |
 
 ---
 
-## Troubleshooting
+## Scripts
 
-### Nodos en estado NotReady
+All scripts follow Red Hat engineering standards:
 
-Causa: el kubelet anuncia la IP del adaptador NAT (`10.0.2.15`) en vez de la red privada.
+- `set -euo pipefail` — fail fast on any error
+- Variables defined at the top — no magic strings
+- Comments explain **why**, not what
+- Numbered steps visible in provisioning output
+- Idempotent — safe to run multiple times
+
+### common.sh
+
+Runs on all nodes. Installs and configures:
+
+- Swap disabled (required by Kubernetes)
+- Kernel modules: `overlay`, `br_netfilter`
+- Network parameters: `ip_forward`, bridge iptables
+- containerd with `SystemdCgroup = true`
+- open-iscsi (storage prerequisite)
+- kubeadm, kubelet, kubectl (pinned to v1.31, hold enabled)
+
+### master.sh
+
+Runs on master only:
+
+- Configures kubelet node IP (prevents NAT IP announcement)
+- `kubeadm init` with private network advertise address
+- Copies kubeconfig for vagrant user
+- Applies Calico CNI v3.27.0
+- Generates `join-command.sh` in `/vagrant/` shared folder
+
+### worker.sh
+
+Runs on each worker with node IP as argument:
+
+- `kubeadm reset --force` — cleans any prior Kubernetes state
+- Removes `/etc/kubernetes`, `/var/lib/kubelet`, CNI config
+- Flushes iptables
+- Configures node IP for kubelet
+- Executes join command from shared folder
+
+### post-install.sh
+
+Runs manually on master after `vagrant up`:
+
+- Installs Helm v3 (latest)
+- Installs Metrics Server with `--kubelet-preferred-address-types=InternalIP`
+- Deploys local-path-provisioner
+- Sets local-path as default StorageClass
+
+---
+
+## Known Issues and Solutions
+
+| Issue | Root Cause | Solution |
+|---|---|---|
+| Nodes announce NAT IP (10.0.2.15) | kubelet default behavior | `KUBELET_EXTRA_ARGS=--node-ip` in `/etc/default/kubelet` |
+| GPG fails in non-interactive mode | Missing batch flags | `gpg --batch --yes --dearmor` |
+| kubeadm join fails on re-provision | Leftover Kubernetes files | `kubeadm reset --force` at start of `worker.sh` |
+| VirtualBox orphaned VM directory | VMs not cleaned up properly | `Remove-Item -Recurse -Force "C:\Users\...\VirtualBox VMs\<name>"` |
+| Metrics Server scrape timeout | Wrong address type | `--kubelet-preferred-address-types=InternalIP` |
+| kubeconfig Forbidden after restart | Stale credentials | `sudo cp /etc/kubernetes/admin.conf ~/.kube/config` |
+| vagrant up boot timeout | VMs slow to start with 6GB RAM | `config.vm.boot_timeout = 600` |
+
+---
+
+## Day-2 Operations
+
+### Start the cluster
 
 ```bash
-echo 'KUBELET_EXTRA_ARGS=--node-ip=<IP_DEL_NODO>' | sudo tee /etc/default/kubelet
-sudo systemctl daemon-reload && sudo systemctl restart kubelet
+cd k8s-on-premise
+vagrant up
+vagrant ssh master
+sudo cp /etc/kubernetes/admin.conf ~/.kube/config
+sudo chown $(id -u):$(id -g) ~/.kube/config
+kubectl get nodes -o wide
 ```
 
-### Timeout en vagrant up
-
-Causa: las VMs tardan más del tiempo por defecto en arrancar.
+### Stop the cluster (data preserved)
 
 ```bash
-vagrant up worker1
-vagrant up worker2
+vagrant halt
 ```
 
-### Error conntrack not found en kubeadm join
+### Destroy and rebuild from scratch
 
 ```bash
-sudo apt-get install -y conntrack
+vagrant destroy --force
+vagrant up
+vagrant ssh master
+bash /vagrant/scripts/post-install.sh
 ```
 
-### Error containerd.sock not found
+### Fix VirtualBox orphaned directory (Windows)
 
-```bash
-sudo apt-get install -y containerd
-sudo mkdir -p /etc/containerd
-containerd config default | sudo tee /etc/containerd/config.toml
-sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
-sudo systemctl restart containerd && sudo systemctl enable containerd
+```powershell
+Remove-Item -Recurse -Force "C:\Users\lique\VirtualBox VMs\<node-name>"
+vagrant up <node>
 ```
 
 ---
 
-Developed by [LRA Cloud Operations](https://www.lracloudops.com/) · [github.com/lra-cloud-ops](https://github.com/lra-cloud-ops) · Las Palmas de Gran Canaria, España
+## Git Workflow
+
+This project uses semantic commits:
+
+| Prefix | Purpose | Example |
+|---|---|---|
+| `feat:` | New functionality | `feat: add NGINX Ingress Controller` |
+| `fix:` | Bug fix | `fix: add kubeadm reset before join` |
+| `refactor:` | Code improvement | `refactor: rewrite scripts following Red Hat best practices` |
+| `docs:` | Documentation | `docs: update README with Phase 2 completion` |
+| `chore:` | Maintenance | `chore: increase master RAM to 6GB` |
+
+Branches follow the pattern: `feat/<phase>-<component>`, `fix/<issue>`.
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Version |
+|---|---|---|
+| OS | Ubuntu LTS | 22.04 |
+| Container runtime | containerd | 2.2.1 |
+| Kubernetes | kubeadm / kubelet / kubectl | 1.31.14 |
+| CNI | Calico | 3.27.0 |
+| Package manager | Helm | 3.21.0 |
+| Metrics | Metrics Server | 0.8.0 |
+| Storage | local-path-provisioner | latest |
+| Virtualization | VirtualBox + Vagrant | 7.x / 2.x |
+
+---
+
+## Author
+
+**Ruben Alexis** · DevOps Engineer  
+[LRA Cloud Operations](https://lracloudops.com) · [@lracloudops](https://instagram.com/lracloudops)
