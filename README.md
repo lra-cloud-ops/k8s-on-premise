@@ -33,6 +33,22 @@ Host: Windows 11 Pro · Intel i7-13620H · 32GB RAM · 2.75TB
 └─────────────────────────────────────────────────────────┘
 ```
 
+### Traffic Flow
+
+```
+Browser (host PC)
+      │
+      ▼
+192.168.56.11:30080 (NodePort)
+      │
+      ▼
+NGINX Ingress Controller
+      │
+      ├──► nginx-lracloudops.local  → nginx-lracloudops  (2-3 replicas)
+      ├──► argocd.local:30443       → ArgoCD UI
+      └──► grafana.local (planned)  → Grafana UI
+```
+
 ---
 
 ## Quick Start
@@ -45,7 +61,7 @@ Host: Windows 11 Pro · Intel i7-13620H · 32GB RAM · 2.75TB
 | Vagrant | 2.x | VM provisioning |
 | Git | any | Source control |
 
-**Minimum host resources:** 20GB RAM · 8 CPU cores · 150GB disk
+**Minimum host resources:** 20GB RAM · 12 CPU cores · 150GB disk
 
 ### Deploy the cluster
 
@@ -76,6 +92,8 @@ This installs Helm, Metrics Server, and local-path StorageClass.
 kubectl get nodes -o wide
 kubectl top nodes
 kubectl get storageclass
+kubectl get pods -n ingress-nginx
+kubectl get pods -n argocd
 ```
 
 ---
@@ -87,6 +105,9 @@ k8s-on-premise/
 ├── Vagrantfile                 # Infrastructure as Code — 3 VMs
 ├── README.md                   # This file
 ├── .gitignore                  # Excludes .vagrant/ and join-command.sh
+├── apps/
+│   └── nginx-lracloudops/      # GitOps demo app managed by ArgoCD
+│       └── deployment.yaml     # Deployment + Service + Ingress
 └── scripts/
     ├── common.sh               # Base setup — all nodes
     ├── master.sh               # Control Plane initialization
@@ -104,7 +125,7 @@ k8s-on-premise/
 | Base | Vagrant · containerd · kubeadm · Calico | ✅ Complete | Fully automated |
 | 1 | Helm v3.21.0 · Metrics Server v0.8.0 | ✅ Complete | kubectl top nodes working |
 | 2 | local-path-provisioner (StorageClass) | ✅ Complete | Default StorageClass, PVC verified |
-| 3 | NGINX Ingress Controller | 🔄 Next | HTTP/HTTPS routing |
+| 3 | NGINX Ingress Controller | ✅ Complete | NodePort 30080/30443, demo app exposed |
 | 4 | cert-manager | ⬜ Planned | Automatic TLS certificates |
 | 5 | PostgreSQL (StatefulSet) | ⬜ Planned | Persistent database |
 | 6 | Prometheus | ⬜ Planned | Metrics collection |
@@ -114,12 +135,47 @@ k8s-on-premise/
 | 10 | Harbor | ⬜ Planned | Private container registry |
 | 11 | Jenkins | ⬜ Planned | CI pipelines |
 | 12 | SonarQube | ⬜ Planned | Code quality |
-| 13 | ArgoCD | ⬜ Planned | GitOps continuous delivery |
+| 13 | ArgoCD v3.4.3 | ✅ Complete | GitOps demo — auto-sync from GitHub verified |
 | 14 | HashiCorp Vault | ⬜ Planned | Secrets management |
 | 15 | Trivy | ⬜ Planned | Container image scanning |
 | 16 | Velero | ⬜ Planned | Backup and restore |
 | 17 | Demo App | ⬜ Planned | React + FastAPI + PostgreSQL |
 | 18 | OpenTelemetry + Jaeger | ⬜ Planned | Distributed tracing |
+
+---
+
+## GitOps with ArgoCD
+
+ArgoCD watches this repository and automatically syncs any changes to the cluster. No manual `kubectl apply` in production.
+
+### How it works
+
+```
+Git push → ArgoCD detects change (every 3 min) → kubectl apply → Pods updated
+```
+
+### Demo application
+
+The `apps/nginx-lracloudops` directory is managed by ArgoCD. To demonstrate GitOps:
+
+```bash
+# Edit replicas in apps/nginx-lracloudops/deployment.yaml
+# Change replicas: 2 to replicas: 3
+git add . && git commit -m "feat: scale to 3 replicas" && git push
+# ArgoCD applies the change automatically within 3 minutes
+kubectl get pods -l app=nginx-lracloudops
+```
+
+### Access ArgoCD UI
+
+Add to `C:\Windows\System32\drivers\etc\hosts`:
+```
+192.168.56.11 argocd.local
+```
+
+Open: `https://argocd.local:30443`  
+Username: `admin`  
+Password: `kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d`
 
 ---
 
@@ -235,10 +291,8 @@ This project uses semantic commits:
 | `feat:` | New functionality | `feat: add NGINX Ingress Controller` |
 | `fix:` | Bug fix | `fix: add kubeadm reset before join` |
 | `refactor:` | Code improvement | `refactor: rewrite scripts following Red Hat best practices` |
-| `docs:` | Documentation | `docs: update README with Phase 2 completion` |
+| `docs:` | Documentation | `docs: update README with Phase 3 and Phase 13 completion` |
 | `chore:` | Maintenance | `chore: increase master RAM to 6GB` |
-
-Branches follow the pattern: `feat/<phase>-<component>`, `fix/<issue>`.
 
 ---
 
@@ -253,6 +307,8 @@ Branches follow the pattern: `feat/<phase>-<component>`, `fix/<issue>`.
 | Package manager | Helm | 3.21.0 |
 | Metrics | Metrics Server | 0.8.0 |
 | Storage | local-path-provisioner | latest |
+| Ingress | NGINX Ingress Controller | latest |
+| GitOps | ArgoCD | 3.4.3 |
 | Virtualization | VirtualBox + Vagrant | 7.x / 2.x |
 
 ---
