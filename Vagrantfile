@@ -11,7 +11,7 @@ Vagrant.configure("2") do |config|
     master.vm.network "private_network", ip: "192.168.56.10"
     master.vm.provider "virtualbox" do |v|
       v.name   = "master-node"
-      v.memory = 4096
+      v.memory = 6144
       v.cpus   = 2
     end
     master.vm.provision "shell", path: "scripts/common.sh"
