@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
     master.vm.provider "virtualbox" do |v|
       v.name   = "master-node"
       v.memory = 6144
-      v.cpus   = 2
+      v.cpus   = 4
     end
     master.vm.provision "shell", path: "scripts/common.sh"
     master.vm.provision "shell", path: "scripts/master.sh"
