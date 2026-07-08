@@ -1,0 +1,31 @@
+{
+  "name": "k8s-on-premise",
+  "description": "Multi-node Kubernetes cluster from scratch with kubeadm. 1 master + 2 workers on Vagrant/VirtualBox. Calico CNI, NGINX Ingress, Helm add-ons and ArgoCD GitOps demo.",
+  "descriptionES": "Clúster Kubernetes multi-nodo desde cero con kubeadm. 1 master + 2 workers en Vagrant/VirtualBox. Calico CNI, NGINX Ingress, add-ons Helm y demo GitOps con ArgoCD.",
+  "status": "Active",
+  "stats": {
+    "nodes": 3,
+    "scripts": 6,
+    "commits": 25,
+    "cni": "Calico"
+  },
+  "tags": ["Kubernetes", "kubeadm", "Calico", "Vagrant", "Helm", "ArgoCD", "NGINX"],
+  "features": [
+    "Full kubeadm bootstrap — not k3s or minikube",
+    "1 control-plane + 2 workers on Vagrant/VirtualBox",
+    "Calico CNI with network policies",
+    "NGINX Ingress controller — HTTP/HTTPS routing",
+    "Helm add-ons — Metrics Server, local-path-provisioner",
+    "ArgoCD GitOps — self-heal: true, prune: true",
+    "6 idempotent scripts with set -euo pipefail"
+  ],
+  "featuresES": [
+    "Bootstrap kubeadm completo — no k3s ni minikube",
+    "1 control-plane + 2 workers en Vagrant/VirtualBox",
+    "Calico CNI con políticas de red",
+    "Controlador NGINX Ingress — enrutamiento HTTP/HTTPS",
+    "Add-ons Helm — Metrics Server, local-path-provisioner",
+    "ArgoCD GitOps — self-heal: true, prune: true",
+    "6 scripts idempotentes con set -euo pipefail"
+  ]
+}
